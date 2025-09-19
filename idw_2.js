@@ -69,7 +69,6 @@ function haversine(a, b) {
 }
 
 function interpolateIDW_directdraw(points, options) {
-  // Follows leaflet-idw-directdraw.js logic
   const {
     width,
     height,
@@ -101,6 +100,8 @@ function interpolateIDW_directdraw(points, options) {
   const nCellX = Math.ceil(width / r);
   const nCellY = Math.ceil(height / r);
 
+  const FADE_DISTANCE = 150000; // meters (adjust as needed for your map)
+
   for (let i = 0; i < nCellY; i++) {
     for (let j = 0; j < nCellX; j++) {
       const x = j * r;
@@ -113,9 +114,11 @@ function interpolateIDW_directdraw(points, options) {
         bounds
       );
       let numerator = 0,
-        denominator = 0;
+        denominator = 0,
+        minDist = Infinity;
       for (const pt of points) {
         const dist = haversine(latlng, { lat: pt[0], lng: pt[1] });
+        minDist = Math.min(minDist, dist);
         const val = pt[2];
         const dist2 = Math.pow(dist, exp) || 1e-6;
         numerator += val / dist2;
@@ -123,7 +126,19 @@ function interpolateIDW_directdraw(points, options) {
       }
       let interpolVal = numerator / denominator;
       interpolVal = Math.min(interpolVal, max);
-      const color = grad[Math.round((interpolVal / max) * 255)];
+
+      // Feathering: blend with default color if far from stations
+      let alpha = 1;
+      if (minDist > FADE_DISTANCE) {
+        alpha = Math.max(0, 1 - (minDist - FADE_DISTANCE) / FADE_DISTANCE);
+      }
+      const interpColor = grad[Math.round((interpolVal / max) * 255)];
+      const color = [
+        Math.round(interpColor[0] * alpha + bg[0] * (1 - alpha)),
+        Math.round(interpColor[1] * alpha + bg[1] * (1 - alpha)),
+        Math.round(interpColor[2] * alpha + bg[2] * (1 - alpha)),
+      ];
+
       // Fill cell
       for (let dy = 0; dy < r; dy++) {
         for (let dx = 0; dx < r; dx++) {
