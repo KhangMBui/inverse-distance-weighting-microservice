@@ -87,10 +87,11 @@ function interpolateIDW_directdraw(points, options) {
   for (let py = 0; py < height; py++) {
     for (let px = 0; px < width; px++) {
       const idx = (py * width + px) * 4;
+      const alpha = 1;
       png.data[idx] = bg[0];
       png.data[idx + 1] = bg[1];
       png.data[idx + 2] = bg[2];
-      png.data[idx + 3] = 255;
+      png.data[idx + 3] = Math.round(255 * alpha);
     }
   }
 
@@ -100,7 +101,7 @@ function interpolateIDW_directdraw(points, options) {
   const nCellX = Math.ceil(width / r);
   const nCellY = Math.ceil(height / r);
 
-  const FADE_DISTANCE = 150000; // meters (adjust as needed for your map)
+  const FADE_DISTANCE = 100000; // meters (adjust as needed for your map)
 
   for (let i = 0; i < nCellY; i++) {
     for (let j = 0; j < nCellX; j++) {
@@ -149,7 +150,7 @@ function interpolateIDW_directdraw(points, options) {
             png.data[idx] = color[0];
             png.data[idx + 1] = color[1];
             png.data[idx + 2] = color[2];
-            png.data[idx + 3] = 255;
+            png.data[idx + 3] = Math.round(255 * alpha);
           }
         }
       }

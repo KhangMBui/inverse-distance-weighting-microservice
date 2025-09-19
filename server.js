@@ -12,7 +12,6 @@ app.use(express.json({ limit: "10mb" }));
 
 app.post("/interpolate", (req, res) => {
   console.log("Endpoint hit");
-  // console.log("Request body:", req.body);
   try {
     const { points, width, height, cellSize, max, gradient, bounds, exp } =
       req.body;
@@ -23,8 +22,9 @@ app.post("/interpolate", (req, res) => {
     const pngBuffer = interpolateIDW_directdraw(points, options);
     res.set("Content-Type", "image/png");
     res.send(pngBuffer);
+    console.log("Interpolation complete, response sent.");
   } catch (err) {
-    // console.error("Error:", err);
+    console.error("Error:", err);
     res.status(500).json({ error: err.message });
   }
 });
