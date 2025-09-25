@@ -12,6 +12,7 @@ app.use(express.json({ limit: "10mb" }));
 
 app.post("/interpolate", (req, res) => {
   console.log("Endpoint hit");
+  console.log("Request body:", req.body);
   try {
     const { points, width, height, cellSize, max, gradient, bounds, exp } =
       req.body;

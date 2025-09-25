@@ -128,12 +128,20 @@ function interpolateIDW_directdraw(points, options) {
       let interpolVal = numerator / denominator;
       interpolVal = Math.min(interpolVal, max);
 
+      // Handle the case when max is 0 (all values are 0)
+      let gradientIndex;
+      if (max === 0) {
+        gradientIndex = 0; // Use the first color in gradient
+      } else {
+        gradientIndex = Math.round((interpolVal / max) * 255);
+      }
+
       // Feathering: blend with default color if far from stations
       let alpha = 1;
       if (minDist > FADE_DISTANCE) {
         alpha = Math.max(0, 1 - (minDist - FADE_DISTANCE) / FADE_DISTANCE);
       }
-      const interpColor = grad[Math.round((interpolVal / max) * 255)];
+      const interpColor = grad[gradientIndex];
       const color = [
         Math.round(interpColor[0] * alpha + bg[0] * (1 - alpha)),
         Math.round(interpColor[1] * alpha + bg[1] * (1 - alpha)),
