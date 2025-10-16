@@ -95,6 +95,11 @@ function interpolateIDW_directdraw(points, options) {
     }
   }
 
+  // If no points provided, return the background PNG immediately
+  if (!Array.isArray(points) || points.length === 0) {
+    return PNG.sync.write(png);
+  }
+
   // Calculate grid size
   const r = cellSize;
   const cellCen = r / 2;
@@ -125,7 +130,10 @@ function interpolateIDW_directdraw(points, options) {
         numerator += val / dist2;
         denominator += 1 / dist2;
       }
-      let interpolVal = numerator / denominator;
+
+      // Defensive checks to avoid NaN / undefined gradient lookups
+      let interpolVal = denominator === 0 ? 0 : numerator / denominator;
+      if (!Number.isFinite(interpolVal)) interpolVal = 0;
       interpolVal = Math.min(interpolVal, max);
 
       // Handle the case when max is 0 (all values are 0)
@@ -134,6 +142,9 @@ function interpolateIDW_directdraw(points, options) {
         gradientIndex = 0; // Use the first color in gradient
       } else {
         gradientIndex = Math.round((interpolVal / max) * 255);
+        if (!Number.isFinite(gradientIndex)) gradientIndex = 0;
+        // Clamp to valid range for grad lookup
+        gradientIndex = Math.max(0, Math.min(gradientIndex, grad.length - 1));
       }
 
       // Feathering: blend with default color if far from stations
@@ -141,7 +152,7 @@ function interpolateIDW_directdraw(points, options) {
       if (minDist > FADE_DISTANCE) {
         alpha = Math.max(0, 1 - (minDist - FADE_DISTANCE) / FADE_DISTANCE);
       }
-      const interpColor = grad[gradientIndex];
+      const interpColor = (grad && grad[gradientIndex]) || bg;
       const color = [
         Math.round(interpColor[0] * alpha + bg[0] * (1 - alpha)),
         Math.round(interpColor[1] * alpha + bg[1] * (1 - alpha)),
